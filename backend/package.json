@@ -1,0 +1,28 @@
+{
+  "name": "vaccine-lookup-backend",
+  "version": "1.0.0",
+  "description": "Backend API for vaccine information application",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "setup-db": "node src/scripts/setupDatabase.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "pg": "^8.11.3",
+    "axios": "^1.5.0",
+    "cheerio": "^1.0.0-rc.12",
+    "helmet": "^7.0.0",
+    "compression": "^1.7.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["vaccine", "api", "fda", "express"],
+  "author": "",
+  "license": "MIT"
+}
+
