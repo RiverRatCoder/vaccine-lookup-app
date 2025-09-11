@@ -1,0 +1,28 @@
+{
+  "export_timestamp": "2025-09-11T20:34:45.501Z",
+  "total_vaccines": 38,
+  "total_clinical_trials": 40,
+  "total_adverse_effects": 251,
+  "vaccines_by_manufacturer": {
+    "Pfizer-BioNTech": 1,
+    "Moderna": 1,
+    "Merck & Co.": 9,
+    "Various": 1,
+    "Sanofi Pasteur": 9,
+    "Emergent BioSolutions": 1,
+    "Seqirus": 1,
+    "GlaxoSmithKline": 13,
+    "AstraZeneca": 1,
+    "Pfizer": 1
+  },
+  "trials_by_phase": {
+    "Phase I": 2,
+    "Phase II/III": 1,
+    "Phase III": 35,
+    "Phase II": 2
+  },
+  "effects_by_source": {
+    "clinical_trial": 143,
+    "post_marketing": 108
+  }
+}

@@ -12,8 +12,15 @@
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
-  "keywords": ["vaccine", "fda", "health", "information"],
+  "keywords": [
+    "vaccine",
+    "fda",
+    "health",
+    "information"
+  ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4"
+  }
 }
-
