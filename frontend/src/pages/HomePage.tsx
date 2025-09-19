@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import VaccineDropdown from '../components/VaccineDropdown';
-import SupabaseTest from '../components/SupabaseTest';
 import { useVaccine } from '../context/VaccineContext';
 import { Vaccine } from '../types/vaccine';
 import { VaccineAPI } from '../services/api';
@@ -220,7 +219,6 @@ const HomePage: React.FC = () => {
             Choose from our comprehensive database of FDA-approved vaccines to view
             detailed information including clinical trials and safety data.
           </SearchDescription>
-          <SupabaseTest />
           <VaccineDropdown onVaccineSelect={handleVaccineSelect} />
         </SearchSection>
 

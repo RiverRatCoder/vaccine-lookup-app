@@ -209,11 +209,102 @@ const EmptyState = styled.div`
   padding: 24px;
 `;
 
+const UnderpoweredWarning = styled.span`
+  color: #dc3545;
+  font-weight: 600;
+`;
+
+const UnderpoweredNote = styled.span`
+  color: #dc3545;
+  font-size: 0.75rem;
+  font-style: italic;
+  margin-left: 4px;
+`;
+
+const SummaryGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+`;
+
+const SummaryCard = styled.div`
+  background: #f8f9ff;
+  border: 1px solid #e8eeff;
+  border-radius: 8px;
+  padding: 16px;
+`;
+
+const SummaryTitle = styled.h5`
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 12px 0;
+  text-align: center;
+`;
+
+const SeverityCount = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
+
+const SeverityLabel = styled.span`
+  font-size: 0.875rem;
+  color: #666;
+`;
+
+const SeverityValue = styled.span`
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #333;
+`;
+
 interface VaccineCardProps {
   vaccine: VaccineDetails;
 }
 
 const VaccineCard: React.FC<VaccineCardProps> = ({ vaccine }) => {
+  // Helper function to count adverse events by severity and data source
+  const getAdverseEventCounts = (dataSource?: string) => {
+    const filtered = vaccine.adverseEffects.filter(effect => {
+      if (dataSource === 'clinical_trial') {
+        return !effect.data_source || effect.data_source === 'clinical_trial';
+      } else if (dataSource === 'post_marketing') {
+        return effect.data_source === 'post_marketing';
+      }
+      return true;
+    });
+
+    const counts = {
+      mild: 0,
+      moderate: 0,
+      severe: 0,
+      total: filtered.length
+    };
+
+    filtered.forEach(effect => {
+      const severity = effect.severity?.toLowerCase();
+      if (severity === 'mild' || severity === 'local') {
+        counts.mild++;
+      } else if (severity === 'moderate' || severity === 'systemic') {
+        counts.moderate++;
+      } else if (severity === 'severe' || severity === 'serious') {
+        counts.severe++;
+      }
+    });
+
+    return counts;
+  };
+
+  const clinicalTrialCounts = getAdverseEventCounts('clinical_trial');
+  const postMarketingCounts = getAdverseEventCounts('post_marketing');
+
   return (
     <CardContainer>
       <CardHeader>
@@ -246,6 +337,49 @@ const VaccineCard: React.FC<VaccineCardProps> = ({ vaccine }) => {
           {vaccine.description && (
             <Description>{vaccine.description}</Description>
           )}
+
+          {/* Adverse Events Summary */}
+          {vaccine.adverseEffects.length > 0 && (
+            <>
+              <SubsectionTitle>Adverse Events Summary</SubsectionTitle>
+              <SummaryGrid>
+                {clinicalTrialCounts.total > 0 && (
+                  <SummaryCard>
+                    <SummaryTitle>Clinical Trials</SummaryTitle>
+                    <SeverityCount>
+                      <SeverityLabel>Mild:</SeverityLabel>
+                      <SeverityValue>{clinicalTrialCounts.mild}</SeverityValue>
+                    </SeverityCount>
+                    <SeverityCount>
+                      <SeverityLabel>Moderate:</SeverityLabel>
+                      <SeverityValue>{clinicalTrialCounts.moderate}</SeverityValue>
+                    </SeverityCount>
+                    <SeverityCount>
+                      <SeverityLabel>Severe:</SeverityLabel>
+                      <SeverityValue>{clinicalTrialCounts.severe}</SeverityValue>
+                    </SeverityCount>
+                  </SummaryCard>
+                )}
+                {postMarketingCounts.total > 0 && (
+                  <SummaryCard>
+                    <SummaryTitle>Post Marketing</SummaryTitle>
+                    <SeverityCount>
+                      <SeverityLabel>Mild:</SeverityLabel>
+                      <SeverityValue>{postMarketingCounts.mild}</SeverityValue>
+                    </SeverityCount>
+                    <SeverityCount>
+                      <SeverityLabel>Moderate:</SeverityLabel>
+                      <SeverityValue>{postMarketingCounts.moderate}</SeverityValue>
+                    </SeverityCount>
+                    <SeverityCount>
+                      <SeverityLabel>Severe:</SeverityLabel>
+                      <SeverityValue>{postMarketingCounts.severe}</SeverityValue>
+                    </SeverityCount>
+                  </SummaryCard>
+                )}
+              </SummaryGrid>
+            </>
+          )}
         </Section>
 
         {/* Clinical Trials */}
@@ -264,7 +398,16 @@ const VaccineCard: React.FC<VaccineCardProps> = ({ vaccine }) => {
                   {trial.participant_count && (
                     <InfoItem>
                       <InfoLabel>Participants</InfoLabel>
-                      <InfoValue>{trial.participant_count.toLocaleString()}</InfoValue>
+                      <InfoValue>
+                        {trial.participant_count < 2000 ? (
+                          <>
+                            <UnderpoweredWarning>{trial.participant_count.toLocaleString()}</UnderpoweredWarning>
+                            <UnderpoweredNote>* study may be underpowered</UnderpoweredNote>
+                          </>
+                        ) : (
+                          trial.participant_count.toLocaleString()
+                        )}
+                      </InfoValue>
                     </InfoItem>
                   )}
                   {trial.duration_months && (
@@ -276,7 +419,16 @@ const VaccineCard: React.FC<VaccineCardProps> = ({ vaccine }) => {
                   {trial.monitoring_period_days && (
                     <InfoItem>
                       <InfoLabel>Monitoring Period</InfoLabel>
-                      <InfoValue>{trial.monitoring_period_days} days after each dose</InfoValue>
+                      <InfoValue>
+                        {trial.monitoring_period_days < 730 ? (
+                          <>
+                            <UnderpoweredWarning>{trial.monitoring_period_days} days after each dose</UnderpoweredWarning>
+                            <UnderpoweredNote>* study monitoring period may be too short</UnderpoweredNote>
+                          </>
+                        ) : (
+                          `${trial.monitoring_period_days} days after each dose`
+                        )}
+                      </InfoValue>
                     </InfoItem>
                   )}
                   {(trial.age_range_min || trial.age_range_max) && (
