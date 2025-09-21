@@ -96,6 +96,11 @@ export class SupabaseVaccineAPI {
 
   static async getAllVaccines(): Promise<Vaccine[]> {
     try {
+      // Check if Supabase is properly configured
+      if (!process.env.REACT_APP_SUPABASE_URL || !process.env.REACT_APP_SUPABASE_ANON_KEY) {
+        throw new Error('Supabase configuration error: Missing environment variables in deployment');
+      }
+
       // Get vaccines with only essential fields to reduce payload
       const { data: vaccines, error } = await supabase
         .from('vaccines')
@@ -111,7 +116,10 @@ export class SupabaseVaccineAPI {
 
       if (error) {
         console.error('❌ Supabase Error:', error);
-        throw error;
+        if (error.message.includes('Invalid API key')) {
+          throw new Error('Database connection failed: Invalid API credentials');
+        }
+        throw new Error(`Database error: ${error.message}`);
       }
       
       if (process.env.NODE_ENV === 'development') {
@@ -144,6 +152,11 @@ export class SupabaseVaccineAPI {
 
   static async getVaccineById(id: number): Promise<VaccineDetails | null> {
     try {
+      // Check if Supabase is properly configured
+      if (!process.env.REACT_APP_SUPABASE_URL || !process.env.REACT_APP_SUPABASE_ANON_KEY) {
+        throw new Error('Supabase configuration error: Missing environment variables in deployment');
+      }
+
       // Check persistent cache first
       const cache = this.getCache();
       const cacheTimestamp = this.getCacheTimestamp();
@@ -168,7 +181,10 @@ export class SupabaseVaccineAPI {
 
       if (error) {
         if (error.code === 'PGRST116') return null; // Not found
-        throw error;
+        if (error.message.includes('Invalid API key')) {
+          throw new Error('Database connection failed: Invalid API credentials');
+        }
+        throw new Error(`Database error: ${error.message}`);
       }
 
       // Sort adverse effects by severity (most severe first) then alphabetically

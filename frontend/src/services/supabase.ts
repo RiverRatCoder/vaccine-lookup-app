@@ -5,8 +5,14 @@ const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('❌ Missing Supabase environment variables!');
+  console.error('Required: REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY');
+  console.error('Current values:', { 
+    url: supabaseUrl ? '✅ Set' : '❌ Missing', 
+    key: supabaseAnonKey ? '✅ Set' : '❌ Missing' 
+  });
   throw new Error(
-    'Missing Supabase environment variables. Please check your .env file and ensure REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY are set.'
+    'Supabase configuration error: Missing environment variables. Please configure REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY in your deployment settings.'
   );
 }
 
