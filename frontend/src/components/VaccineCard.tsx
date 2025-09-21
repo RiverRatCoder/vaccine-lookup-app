@@ -265,6 +265,26 @@ const SeverityValue = styled.span`
   color: #333;
 `;
 
+const SourceAttribution = styled.div`
+  background: #f8f9ff;
+  border: 1px solid #e8eeff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 24px;
+  font-size: 0.875rem;
+  color: #666;
+  text-align: center;
+  
+  a {
+    color: #667eea;
+    text-decoration: none;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+`;
+
 interface VaccineCardProps {
   vaccine: VaccineDetails;
 }
@@ -339,47 +359,55 @@ const VaccineCard: React.FC<VaccineCardProps> = ({ vaccine }) => {
           )}
 
           {/* Adverse Events Summary */}
-          {vaccine.adverseEffects.length > 0 && (
-            <>
-              <SubsectionTitle>Adverse Events Summary</SubsectionTitle>
-              <SummaryGrid>
-                {clinicalTrialCounts.total > 0 && (
-                  <SummaryCard>
-                    <SummaryTitle>Clinical Trials</SummaryTitle>
-                    <SeverityCount>
-                      <SeverityLabel>Mild:</SeverityLabel>
-                      <SeverityValue>{clinicalTrialCounts.mild}</SeverityValue>
-                    </SeverityCount>
-                    <SeverityCount>
-                      <SeverityLabel>Moderate:</SeverityLabel>
-                      <SeverityValue>{clinicalTrialCounts.moderate}</SeverityValue>
-                    </SeverityCount>
-                    <SeverityCount>
-                      <SeverityLabel>Severe:</SeverityLabel>
-                      <SeverityValue>{clinicalTrialCounts.severe}</SeverityValue>
-                    </SeverityCount>
-                  </SummaryCard>
-                )}
-                {postMarketingCounts.total > 0 && (
-                  <SummaryCard>
-                    <SummaryTitle>Post Marketing</SummaryTitle>
-                    <SeverityCount>
-                      <SeverityLabel>Mild:</SeverityLabel>
-                      <SeverityValue>{postMarketingCounts.mild}</SeverityValue>
-                    </SeverityCount>
-                    <SeverityCount>
-                      <SeverityLabel>Moderate:</SeverityLabel>
-                      <SeverityValue>{postMarketingCounts.moderate}</SeverityValue>
-                    </SeverityCount>
-                    <SeverityCount>
-                      <SeverityLabel>Severe:</SeverityLabel>
-                      <SeverityValue>{postMarketingCounts.severe}</SeverityValue>
-                    </SeverityCount>
-                  </SummaryCard>
-                )}
-              </SummaryGrid>
-            </>
-          )}
+          <SubsectionTitle>Adverse Events Summary</SubsectionTitle>
+          <SummaryGrid>
+            <SummaryCard>
+              <SummaryTitle>Clinical Trials</SummaryTitle>
+              {clinicalTrialCounts.total > 0 ? (
+                <>
+                  <SeverityCount>
+                    <SeverityLabel>Mild:</SeverityLabel>
+                    <SeverityValue>{clinicalTrialCounts.mild}</SeverityValue>
+                  </SeverityCount>
+                  <SeverityCount>
+                    <SeverityLabel>Moderate:</SeverityLabel>
+                    <SeverityValue>{clinicalTrialCounts.moderate}</SeverityValue>
+                  </SeverityCount>
+                  <SeverityCount>
+                    <SeverityLabel>Severe:</SeverityLabel>
+                    <SeverityValue>{clinicalTrialCounts.severe}</SeverityValue>
+                  </SeverityCount>
+                </>
+              ) : (
+                <SeverityCount>
+                  <SeverityLabel style={{ fontStyle: 'italic', color: '#999' }}>No data available</SeverityLabel>
+                </SeverityCount>
+              )}
+            </SummaryCard>
+            <SummaryCard>
+              <SummaryTitle>Post Marketing</SummaryTitle>
+              {postMarketingCounts.total > 0 ? (
+                <>
+                  <SeverityCount>
+                    <SeverityLabel>Mild:</SeverityLabel>
+                    <SeverityValue>{postMarketingCounts.mild}</SeverityValue>
+                  </SeverityCount>
+                  <SeverityCount>
+                    <SeverityLabel>Moderate:</SeverityLabel>
+                    <SeverityValue>{postMarketingCounts.moderate}</SeverityValue>
+                  </SeverityCount>
+                  <SeverityCount>
+                    <SeverityLabel>Severe:</SeverityLabel>
+                    <SeverityValue>{postMarketingCounts.severe}</SeverityValue>
+                  </SeverityCount>
+                </>
+              ) : (
+                <SeverityCount>
+                  <SeverityLabel style={{ fontStyle: 'italic', color: '#999' }}>No data available</SeverityLabel>
+                </SeverityCount>
+              )}
+            </SummaryCard>
+          </SummaryGrid>
         </Section>
 
         {/* Clinical Trials */}
@@ -413,7 +441,16 @@ const VaccineCard: React.FC<VaccineCardProps> = ({ vaccine }) => {
                   {trial.duration_months && (
                     <InfoItem>
                       <InfoLabel>Duration</InfoLabel>
-                      <InfoValue>{trial.duration_months} months</InfoValue>
+                      <InfoValue>
+                        {trial.duration_months < 24 ? (
+                          <>
+                            <UnderpoweredWarning>{trial.duration_months} months</UnderpoweredWarning>
+                            <UnderpoweredNote>* study duration may be too short</UnderpoweredNote>
+                          </>
+                        ) : (
+                          `${trial.duration_months} months`
+                        )}
+                      </InfoValue>
                     </InfoItem>
                   )}
                   {trial.monitoring_period_days && (
@@ -462,78 +499,89 @@ const VaccineCard: React.FC<VaccineCardProps> = ({ vaccine }) => {
         {/* Adverse Effects */}
         <Section>
           <SectionTitle>Reported Adverse Effects</SectionTitle>
-          {vaccine.adverseEffects.length > 0 ? (
+          
+          {/* Clinical Trial Adverse Effects */}
+          <SubsectionTitle>Clinical Trial Experience</SubsectionTitle>
+          {vaccine.adverseEffects.filter(effect => !effect.data_source || effect.data_source === 'clinical_trial').length > 0 ? (
             <>
-              {/* Clinical Trial Adverse Effects */}
-              {vaccine.adverseEffects.filter(effect => !effect.data_source || effect.data_source === 'clinical_trial').length > 0 && (
-                <>
-                  <SubsectionTitle>Clinical Trial Experience</SubsectionTitle>
-                  <AdverseEffectsNote>
-                    The following adverse reactions were observed during clinical trials conducted under widely varying conditions.
-                  </AdverseEffectsNote>
-                  {vaccine.adverseEffects
-                    .filter(effect => !effect.data_source || effect.data_source === 'clinical_trial')
-                    .map((effect) => (
-                      <EffectCard key={effect.id}>
-                        <EffectHeader>
-                          <EffectName>{effect.effect_name}</EffectName>
-                          <SeverityBadge $severity={effect.severity}>
-                            {effect.severity}
-                          </SeverityBadge>
-                        </EffectHeader>
-                        {effect.occurrence_rate != null && (
-                          <OccurrenceRate>
-                            Occurrence Rate: {Number(effect.occurrence_rate).toFixed(1)}%
-                            {effect.reported_cases && (
-                              ` (${effect.reported_cases.toLocaleString()} reported cases)`
-                            )}
-                          </OccurrenceRate>
+              <AdverseEffectsNote>
+                The following adverse reactions were observed during clinical trials conducted under widely varying conditions.
+              </AdverseEffectsNote>
+              {vaccine.adverseEffects
+                .filter(effect => !effect.data_source || effect.data_source === 'clinical_trial')
+                .map((effect) => (
+                  <EffectCard key={effect.id}>
+                    <EffectHeader>
+                      <EffectName>{effect.effect_name}</EffectName>
+                      <SeverityBadge $severity={effect.severity}>
+                        {effect.severity}
+                      </SeverityBadge>
+                    </EffectHeader>
+                    {effect.occurrence_rate != null && (
+                      <OccurrenceRate>
+                        Occurrence Rate: {Number(effect.occurrence_rate).toFixed(1)}%
+                        {effect.reported_cases && (
+                          ` (${effect.reported_cases.toLocaleString()} reported cases)`
                         )}
-                        {effect.description && (
-                          <EffectDescription>{effect.description}</EffectDescription>
-                        )}
-                      </EffectCard>
-                    ))}
-                </>
-              )}
-
-              {/* Post-Marketing Adverse Effects */}
-              {vaccine.adverseEffects.filter(effect => effect.data_source === 'post_marketing').length > 0 && (
-                <>
-                  <SubsectionTitle>Post-Marketing Experience</SubsectionTitle>
-                  <AdverseEffectsNote>
-                    The following adverse reactions have been identified during post-approval use. Because these reactions are reported voluntarily from a population of uncertain size, it is not always possible to reliably estimate their frequency or establish a causal relationship to vaccine exposure.
-                  </AdverseEffectsNote>
-                  {vaccine.adverseEffects
-                    .filter(effect => effect.data_source === 'post_marketing')
-                    .map((effect) => (
-                      <EffectCard key={effect.id}>
-                        <EffectHeader>
-                          <EffectName>{effect.effect_name}</EffectName>
-                          <SeverityBadge $severity={effect.severity}>
-                            {effect.severity}
-                          </SeverityBadge>
-                        </EffectHeader>
-                        {effect.occurrence_rate != null && (
-                          <OccurrenceRate>
-                            Estimated Rate: {Number(effect.occurrence_rate).toFixed(3)}%
-                            {effect.reported_cases && (
-                              ` (${effect.reported_cases.toLocaleString()} reported cases)`
-                            )}
-                          </OccurrenceRate>
-                        )}
-                        {effect.description && (
-                          <EffectDescription>{effect.description}</EffectDescription>
-                        )}
-                      </EffectCard>
-                    ))}
-                </>
-              )}
+                      </OccurrenceRate>
+                    )}
+                    {effect.description && (
+                      <EffectDescription>{effect.description}</EffectDescription>
+                    )}
+                  </EffectCard>
+                ))}
             </>
           ) : (
-            <EmptyState>No adverse effects data available</EmptyState>
+            <EmptyState>No clinical trial adverse effects data available</EmptyState>
+          )}
+
+          {/* Post-Marketing Adverse Effects */}
+          <SubsectionTitle>Post-Marketing Experience</SubsectionTitle>
+          {vaccine.adverseEffects.filter(effect => effect.data_source === 'post_marketing').length > 0 ? (
+            <>
+              <AdverseEffectsNote>
+                The following adverse reactions have been identified during post-approval use. Because these reactions are reported voluntarily from a population of uncertain size, it is not always possible to reliably estimate their frequency or establish a causal relationship to vaccine exposure.
+              </AdverseEffectsNote>
+              {vaccine.adverseEffects
+                .filter(effect => effect.data_source === 'post_marketing')
+                .map((effect) => (
+                  <EffectCard key={effect.id}>
+                    <EffectHeader>
+                      <EffectName>{effect.effect_name}</EffectName>
+                      <SeverityBadge $severity={effect.severity}>
+                        {effect.severity}
+                      </SeverityBadge>
+                    </EffectHeader>
+                    {effect.occurrence_rate != null && (
+                      <OccurrenceRate>
+                        Estimated Rate: {Number(effect.occurrence_rate).toFixed(3)}%
+                        {effect.reported_cases && (
+                          ` (${effect.reported_cases.toLocaleString()} reported cases)`
+                        )}
+                      </OccurrenceRate>
+                    )}
+                    {effect.description && (
+                      <EffectDescription>{effect.description}</EffectDescription>
+                    )}
+                  </EffectCard>
+                ))}
+            </>
+          ) : (
+            <EmptyState>No post-marketing adverse effects data available</EmptyState>
           )}
         </Section>
+
+        {/* Source Attribution */}
+        <SourceAttribution>
+          Sourced from{' '}
+          <a 
+            href="https://www.fda.gov/vaccines-blood-biologics/vaccines/vaccines-licensed-use-united-states" 
+            target="_blank" 
+            rel="noopener noreferrer"
+          >
+            https://www.fda.gov/vaccines-blood-biologics/vaccines/vaccines-licensed-use-united-states
+          </a>
+        </SourceAttribution>
       </CardBody>
     </CardContainer>
   );

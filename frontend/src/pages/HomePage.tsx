@@ -195,8 +195,17 @@ const HomePage: React.FC = () => {
 
   const handleVaccineSelect = async (vaccine: Vaccine) => {
     try {
+      // Check if vaccine is cached before showing loading toast
+      const { VaccineAPI } = await import('../services/api');
+      const hasCached = VaccineAPI.hasCachedVaccine(vaccine.id);
+      
       navigate(`/vaccine/${vaccine.id}`);
-      toast.success(`Loading information for ${vaccine.name}`);
+      
+      if (!hasCached) {
+        toast.success(`Loading information for ${vaccine.name} from FDA.gov`);
+      } else {
+        console.log('⚡ Cached vaccine selected - no loading toast');
+      }
     } catch (error) {
       toast.error('Failed to load vaccine information');
     }

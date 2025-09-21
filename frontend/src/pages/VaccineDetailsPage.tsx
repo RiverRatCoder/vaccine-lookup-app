@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import VaccineCard from '../components/VaccineCard';
@@ -142,35 +142,81 @@ const VaccineDetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const { state, setSelectedVaccine, setLoading, setError } = useVaccine();
   const [retryCount, setRetryCount] = useState(0);
+  const [isMounted, setIsMounted] = useState(true);
 
+  // Cleanup effect to prevent memory leaks
   useEffect(() => {
-    if (id) {
-      loadVaccineDetails(parseInt(id));
-    } else {
-      setError('Invalid vaccine ID');
-    }
-  }, [id, retryCount]);
+    return () => {
+      setIsMounted(false);
+    };
+  }, []);
 
-  const loadVaccineDetails = async (vaccineId: number) => {
+  const loadVaccineDetailsCallback = useCallback(async (vaccineId: number) => {
     try {
-      setLoading(true);
+      if (!isMounted) return; // Prevent state updates if component unmounted
+      
       setError(null);
-      const vaccine = await VaccineAPI.getVaccineById(vaccineId);
-      setSelectedVaccine(vaccine);
+      
+      // Check if we have cached data
+      const hasCached = VaccineAPI.hasCachedVaccine(vaccineId);
+      
+      if (hasCached) {
+        // Get cached data immediately without any loading state changes
+        const vaccine = await VaccineAPI.getVaccineById(vaccineId);
+        if (isMounted) {
+          setSelectedVaccine(vaccine);
+        }
+      } else {
+        // Show loading for fresh data
+        if (isMounted) setLoading(true);
+        const vaccine = await VaccineAPI.getVaccineById(vaccineId);
+        if (isMounted) {
+          setSelectedVaccine(vaccine);
+        }
+      }
     } catch (error) {
+      if (!isMounted) return; // Prevent state updates if component unmounted
+      
       const errorMessage = error instanceof Error ? error.message : 'Failed to load vaccine details';
       setError(errorMessage);
       toast.error(errorMessage);
     }
-  };
+  }, [isMounted, setError, setLoading, setSelectedVaccine]);
 
-  const handleRetry = () => {
+  useEffect(() => {
+    if (!id) {
+      setError('Invalid vaccine ID');
+      return;
+    }
+
+    const vaccineId = parseInt(id, 10);
+    if (isNaN(vaccineId)) {
+      setError('Invalid vaccine ID format');
+      return;
+    }
+    
+    // Try to get cached data immediately
+    const cachedVaccine = VaccineAPI.getCachedVaccine(vaccineId);
+    
+    if (cachedVaccine) {
+      // We have cached data - set it immediately
+      setError(null);
+      setLoading(false);
+      setSelectedVaccine(cachedVaccine);
+    } else {
+      // No cache - need to load fresh data
+      loadVaccineDetailsCallback(vaccineId);
+    }
+  }, [id, retryCount, loadVaccineDetailsCallback, setError, setLoading, setSelectedVaccine]);
+
+  const handleRetry = useCallback(() => {
     setRetryCount(prev => prev + 1);
-  };
+  }, []);
 
-  const handleGoBack = () => {
+  const handleGoBack = useCallback(() => {
     navigate('/');
-  };
+  }, [navigate]);
+
 
   if (state.loading) {
     return (

@@ -6,7 +6,7 @@ export interface Vaccine {
   childhood_schedule_date: string | null;
   description: string;
   fda_url?: string;
-  created_at: string;
+  created_at?: string;
   updated_at?: string;
   vaccine_type?: string;
 }
