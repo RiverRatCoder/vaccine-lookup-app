@@ -1,8 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase configuration - CORRECTED URL AND API KEY!
-const supabaseUrl = 'https://mvoirgmuqqcgmhewumse.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12b2lyZ211cXFjZ21oZXd1bXNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2MjA4MzgsImV4cCI6MjA3MzE5NjgzOH0.rD2zASb18xgWEpvo_AHju-uSc_PmBeHVZ3hhIlCdlLQ';
+// Supabase configuration from environment variables
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    'Missing Supabase environment variables. Please check your .env file and ensure REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY are set.'
+  );
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 

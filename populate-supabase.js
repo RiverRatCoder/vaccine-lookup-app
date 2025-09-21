@@ -2,9 +2,15 @@
 // Run this after creating the schema in Supabase SQL Editor
 
 const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config();
 
-const supabaseUrl = 'https://mvdlrznuguqcgrmhewumse.supabase.co';
-const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12ZGxyem51Z3VxY2dybWhld3Vtc2UiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcyNjA2NzI3MSwiZXhwIjo4MDQxNjM5MjcxfQ.zX2Stbx8gWEpvo_AHjuSe_PmBbHV23hInCdlOt';
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('❌ Missing Supabase environment variables. Please check your .env file and ensure SUPABASE_URL and SUPABASE_SERVICE_KEY are set.');
+  process.exit(1);
+}
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
